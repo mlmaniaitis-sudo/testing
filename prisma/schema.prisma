@@ -1,0 +1,132 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// ENUMs for defining fixed sets of values
+enum Role {
+  TOURIST
+  POLICE
+  CENTRAL_AUTHORITY
+  CHECKPOINT_STAFF
+}
+
+enum IncidentStatus {
+  REPORTED
+  INVESTIGATING
+  CONFIRMED
+  DISMISSED
+  RESOLVED
+}
+
+// User model for authentication and roles
+model User {
+  id             String        @id @default(uuid()) // CHANGED from cuid() to uuid()
+  email          String        @unique
+  passwordHash   String
+  role           Role
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  touristProfile TouristProfile?
+  jurisdictionId String?
+  jurisdiction   Jurisdiction? @relation(fields: [jurisdictionId], references: [id])
+}
+
+// Police jurisdictions with hierarchy
+model Jurisdiction {
+  id        String   @id @default(uuid()) // CHANGED from cuid() to uuid()
+  name      String
+  boundary  Unsupported("geometry(Polygon, 4326)")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  parentId  String?
+  parent    Jurisdiction?  @relation("Hierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children  Jurisdiction[] @relation("Hierarchy")
+  users     User[]
+  geofences Geofence[]
+  incidents Incident[]
+}
+
+// Tourist-specific data
+model TouristProfile {
+  id                    String   @id @default(uuid()) // CHANGED from cuid() to uuid()
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id])
+  fullName              String
+  kycDocumentType       String
+  kycDocumentIdHash     String
+  kycVerificationStatus Boolean  @default(false)
+  verifiedByUserId        String?  // ID of the staff member who did the verification
+  kycBlockchainHash     String?
+  digitalIdQrCode       String
+  phoneNumber           String
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  emergencyContacts     EmergencyContact[]
+  trips                 Trip[]
+  incidents             Incident[]
+}
+
+model EmergencyContact {
+  id               String         @id @default(uuid()) // CHANGED from cuid() to uuid()
+  name             String
+  phoneNumber      String
+  relationship     String
+  touristProfileId String
+  touristProfile   TouristProfile @relation(fields: [touristProfileId], references: [id])
+}
+
+model Trip {
+  id               String         @id @default(uuid()) // CHANGED from cuid() to uuid()
+  touristProfileId String
+  touristProfile   TouristProfile @relation(fields: [touristProfileId], references: [id])
+  itineraryDetails Json?
+  startDate        DateTime
+  endDate          DateTime
+  createdAt        DateTime       @default(now())
+}
+
+// Police-defined risk zones
+model Geofence {
+  id             String       @id @default(uuid()) // CHANGED from cuid() to uuid()
+  name           String
+  area           Unsupported("geometry(Polygon, 4326)")
+  riskScore      Float
+  description    String?
+  jurisdictionId String
+  jurisdiction   Jurisdiction @relation(fields: [jurisdictionId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+// Records of detected anomalies/incidents
+model Incident {
+  id                     String         @id @default(uuid()) // CHANGED from cuid() to uuid()
+  touristProfileId       String
+  touristProfile         TouristProfile @relation(fields: [touristProfileId], references: [id])
+  location               Unsupported("geometry(Point, 4326)")
+  timestamp              DateTime
+  anomalyType            String
+  status                 IncidentStatus @default(REPORTED)
+  details                Json
+  evidenceBlockchainHash String?
+  jurisdictionId         String
+  jurisdiction           Jurisdiction   @relation(fields: [jurisdictionId], references: [id])
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @updatedAt
+}
+
+// Location data for the heatmap
+model HeatmapData {
+  id          String   @id @default(uuid()) // CHANGED from cuid() to uuid()
+  location    Unsupported("geometry(Point, 4326)")
+  safetyScore Float
+  lastUpdated DateTime @updatedAt
+}
+
