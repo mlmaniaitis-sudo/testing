@@ -4,6 +4,9 @@ import {
   registerTourist,
   getMyProfile,
   updateMyProfile,
+  getDigitalId,
+  addEmergencyContact,
+  createTrip
 } from '../controllers/tourist.controller.js';
 
 const router = Router();
@@ -13,5 +16,8 @@ const touristOnly = [authenticateToken, authorizeRole('TOURIST')];
 router.post('/register', registerTourist);
 router.get('/profile/me', touristOnly, getMyProfile);
 router.put('/profile/me', touristOnly, updateMyProfile);
+router.get('/digital-id', touristOnly, getDigitalId);
+router.post('/emergency-contact', touristOnly, addEmergencyContact);
+router.post('/trip', touristOnly, createTrip);
 
 export default router;
