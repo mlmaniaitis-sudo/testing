@@ -27,7 +27,7 @@ enum IncidentStatus {
 
 // User model for authentication and roles
 model User {
-  id             String        @id @default(uuid()) // CHANGED from cuid() to uuid()
+  id             String        @id @default(uuid())
   email          String        @unique
   passwordHash   String
   role           Role
@@ -40,7 +40,7 @@ model User {
 
 // Police jurisdictions with hierarchy
 model Jurisdiction {
-  id        String   @id @default(uuid()) // CHANGED from cuid() to uuid()
+  id        String   @id @default(uuid())
   name      String
   boundary  Unsupported("geometry(Polygon, 4326)")
   createdAt DateTime @default(now())
@@ -55,26 +55,29 @@ model Jurisdiction {
 
 // Tourist-specific data
 model TouristProfile {
-  id                    String   @id @default(uuid()) // CHANGED from cuid() to uuid()
-  userId                String   @unique
-  user                  User     @relation(fields: [userId], references: [id])
-  fullName              String
-  kycDocumentType       String
-  kycDocumentIdHash     String
-  kycVerificationStatus Boolean  @default(false)
-  verifiedByUserId        String?  // ID of the staff member who did the verification
+  id                    String    @id @default(uuid())
+  userId                String    @unique
+  user                  User      @relation(fields: [userId], references: [id])
+  fullName              String?   // Optional at creation
+  kycDocumentType       String?   // Optional at creation
+  kycDocumentIdHash     String?   // Optional at creation
+  kycDocumentUrl        String?   // ADDED: For Cloudinary URL
+  kycVerificationStatus Boolean   @default(false)
+  verifiedByUserId      String?
   kycBlockchainHash     String?
-  digitalIdQrCode       String
-  phoneNumber           String
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  emergencyContacts     EmergencyContact[]
-  trips                 Trip[]
-  incidents             Incident[]
+  digitalIdQrCode       String?   // Optional at creation
+  phoneNumber           String?   // Optional at creation
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relationships
+  emergencyContacts   EmergencyContact[]
+  trips               Trip[]
+  incidents           Incident[]
 }
 
 model EmergencyContact {
-  id               String         @id @default(uuid()) // CHANGED from cuid() to uuid()
+  id               String         @id @default(uuid())
   name             String
   phoneNumber      String
   relationship     String
@@ -83,7 +86,7 @@ model EmergencyContact {
 }
 
 model Trip {
-  id               String         @id @default(uuid()) // CHANGED from cuid() to uuid()
+  id               String         @id @default(uuid())
   touristProfileId String
   touristProfile   TouristProfile @relation(fields: [touristProfileId], references: [id])
   itineraryDetails Json?
@@ -94,7 +97,7 @@ model Trip {
 
 // Police-defined risk zones
 model Geofence {
-  id             String       @id @default(uuid()) // CHANGED from cuid() to uuid()
+  id             String       @id @default(uuid())
   name           String
   area           Unsupported("geometry(Polygon, 4326)")
   riskScore      Float
@@ -107,7 +110,7 @@ model Geofence {
 
 // Records of detected anomalies/incidents
 model Incident {
-  id                     String         @id @default(uuid()) // CHANGED from cuid() to uuid()
+  id                     String         @id @default(uuid())
   touristProfileId       String
   touristProfile         TouristProfile @relation(fields: [touristProfileId], references: [id])
   location               Unsupported("geometry(Point, 4326)")
@@ -124,7 +127,7 @@ model Incident {
 
 // Location data for the heatmap
 model HeatmapData {
-  id          String   @id @default(uuid()) // CHANGED from cuid() to uuid()
+  id          String   @id @default(uuid())
   location    Unsupported("geometry(Point, 4326)")
   safetyScore Float
   lastUpdated DateTime @updatedAt
