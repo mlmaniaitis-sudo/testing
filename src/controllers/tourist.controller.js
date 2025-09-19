@@ -22,7 +22,7 @@ export const registerTourist = async (req, res) => {
         passwordHash,
         role: 'TOURIST',
         touristProfile: {
-          create: {}, // Creates an empty TouristProfile linked to this user
+          create: {}, // Creates an empty TouristProfile
         },
       },
     });
@@ -39,23 +39,16 @@ export const registerTourist = async (req, res) => {
 
 export const getMyProfile = async (req, res) => {
   const { userId } = req.user;
-
   try {
     const profile = await prisma.touristProfile.findUnique({
       where: { userId },
-      include: {
-        emergencyContacts: true,
-        trips: true,
-      },
+      include: { emergencyContacts: true, trips: true },
     });
-
     if (!profile) {
       return res.status(404).json({ error: 'Tourist profile not found.' });
     }
-
     res.status(200).json(profile);
   } catch (error) {
-    console.error('Failed to fetch profile:', error);
     res.status(500).json({ error: 'Could not retrieve profile.' });
   }
 };
@@ -63,18 +56,13 @@ export const getMyProfile = async (req, res) => {
 export const updateMyProfile = async (req, res) => {
   const { userId } = req.user;
   const { fullName, phoneNumber } = req.body;
-
   try {
     const updatedProfile = await prisma.touristProfile.update({
       where: { userId },
-      data: {
-        fullName,
-        phoneNumber,
-      },
+      data: { fullName, phoneNumber },
     });
     res.status(200).json({ message: 'Profile updated successfully.', profile: updatedProfile });
   } catch (error) {
-    console.error('Failed to update profile:', error);
     res.status(500).json({ error: 'Could not update profile.' });
   }
 };

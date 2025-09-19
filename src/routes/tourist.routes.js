@@ -8,12 +8,9 @@ import {
 
 const router = Router();
 
-// PUBLIC ROUTE for initial account creation
-router.post('/register', registerTourist);
-
-// PROTECTED ROUTES for logged-in tourists
 const touristOnly = [authenticateToken, authorizeRole('TOURIST')];
 
+router.post('/register', registerTourist);
 router.get('/profile/me', touristOnly, getMyProfile);
 router.put('/profile/me', touristOnly, updateMyProfile);
 

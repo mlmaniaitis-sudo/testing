@@ -10,7 +10,7 @@ const router = Router();
 router.use('/auth', authRouter);
 router.use('/jurisdiction', jurisdictionRouter);
 router.use('/geofence', geofenceRouter);
-router.use('/tourist', touristRouter); 
-router.use('/checkpoint', checkpointRouter); 
+router.use('/tourist', touristRouter);
+router.use('/checkpoint', checkpointRouter);
 
 export default router;

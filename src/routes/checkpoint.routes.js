@@ -1,20 +1,13 @@
 import { Router } from 'express';
-import upload from '../config/cloudinary.js';
+import upload from '../config/multer.js';
 import { registerStaff, submitKycForTourist } from '../controllers/checkpoint.controller.js';
 import { authenticateToken, authorizeRole } from '../middleware/auth.middleware.js';
 
 const router = Router();
 
-// Public route to register new staff (for development)
-router.post('/register', registerStaff);
+const staffOnly = [authenticateToken, authorizeRole('CHECKPOINT_STAFF')];
 
-// Protected route for staff to submit KYC
-router.post(
-  '/submit-kyc',
-  authenticateToken,
-  authorizeRole('CHECKPOINT_STAFF'),
-  upload.single('documentImage'), // Handles file upload to Cloudinary
-  submitKycForTourist
-);
+router.post('/register', registerStaff);
+router.post('/submit-kyc', staffOnly, upload.single('documentImage'), submitKycForTourist);
 
 export default router;
