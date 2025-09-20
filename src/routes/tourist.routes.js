@@ -6,7 +6,8 @@ import {
   updateMyProfile,
   getDigitalId,
   addEmergencyContact,
-  createTrip
+  createTrip,
+  deleteEmergencyContact
 } from '../controllers/tourist.controller.js';
 
 const router = Router();
@@ -19,5 +20,6 @@ router.put('/profile/me', touristOnly, updateMyProfile);
 router.get('/digital-id', touristOnly, getDigitalId);
 router.post('/emergency-contact', touristOnly, addEmergencyContact);
 router.post('/trip', touristOnly, createTrip);
+router.delete('/emergency-contact/:contactId', touristOnly, deleteEmergencyContact);
 
 export default router;

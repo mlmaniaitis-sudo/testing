@@ -107,6 +107,29 @@ export const addEmergencyContact = async (req, res) => {
     }
 };
 
+export const deleteEmergencyContact = async (req, res) => {
+    const { userId } = req.user;
+    const { contactId } = req.params;
+
+    try {
+        const profile = await prisma.touristProfile.findUnique({ where: { userId }, select: { id: true } });
+        if (!profile) return res.status(404).json({ error: 'Tourist profile not found.' });
+
+        // Security Check: Ensure the contact belongs to the logged-in user's profile
+        const contact = await prisma.emergencyContact.findFirst({
+            where: { id: contactId, touristProfileId: profile.id }
+        });
+
+        if (!contact) return res.status(404).json({ error: 'Emergency contact not found or permission denied.' });
+
+        await prisma.emergencyContact.delete({ where: { id: contactId } });
+
+        res.status(200).json({ message: 'Emergency contact deleted successfully.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Could not delete emergency contact.' });
+    }
+};
+
 /**
  * Creates a new trip for the logged-in tourist.
  */
