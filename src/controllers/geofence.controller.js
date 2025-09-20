@@ -34,3 +34,27 @@ export const createGeofence = async (req, res) => {
     res.status(500).json({ error: 'Internal server error.' });
   }
 };
+
+export const getGeofencesInJurisdiction = async (req, res) => {
+  const { jurisdictionId } = req.user;
+
+  if (!jurisdictionId) {
+    return res.status(403).json({ error: 'User is not assigned to a jurisdiction.' });
+  }
+
+  try {
+    const geofences = await prisma.geofence.findMany({
+      where: {
+        jurisdictionId: jurisdictionId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+
+    res.status(200).json(geofences);
+  } catch (error) {
+    console.error('Failed to fetch geofences:', error);
+    res.status(500).json({ error: 'Internal server error.' });
+  }
+};
